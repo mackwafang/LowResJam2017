@@ -7,7 +7,8 @@
   <sounds name="sound"/>
   <sprites name="sprites">
     <sprite>sprites\spr_tank_body</sprite>
-    <sprite>sprites\spr_tank_turrent</sprite>
+    <sprite>sprites\spr_tank_body2</sprite>
+    <sprite>sprites\spr_tank_turret</sprite>
     <sprite>sprites\spr_shell</sprite>
     <sprite>sprites\spr_body_p</sprite>
     <sprite>sprites\spr_body_e1</sprite>
@@ -17,8 +18,15 @@
     <sprite>sprites\spr_score_font</sprite>
     <sprite>sprites\spr_explosion</sprite>
     <sprite>sprites\spr_enemy_gui</sprite>
+    <sprite>sprites\spr_wall2</sprite>
+    <sprite>sprites\spr_water</sprite>
+    <sprite>sprites\spr_he_gui</sprite>
+    <sprite>sprites\spr_ammo_selection</sprite>
+    <sprite>sprites\spr_game_font</sprite>
   </sprites>
-  <backgrounds name="background"/>
+  <backgrounds name="background">
+    <background>background\bkg_grass</background>
+  </backgrounds>
   <paths name="paths"/>
   <scripts name="scripts">
     <script>scripts\var_wipe.gml</script>
@@ -26,20 +34,27 @@
     <script>scripts\inViewRange.gml</script>
     <script>scripts\isBetween.gml</script>
     <script>scripts\checkAliveEnemies.gml</script>
+    <script>scripts\initRoom.gml</script>
+    <script>scripts\fireShell.gml</script>
+    <script>scripts\assert.gml</script>
   </scripts>
   <objects name="objects">
     <object>objects\obj_player</object>
     <object>objects\obj_control</object>
     <object>objects\obj_wall</object>
+    <object>objects\obj_wall2</object>
     <object>objects\obj_shell</object>
     <object>objects\obj_enemy_shell</object>
     <object>objects\obj_enemy_parent</object>
     <object>objects\obj_dmg_inc</object>
     <object>objects\obj_enemy_1</object>
     <object>objects\obj_enemy_2</object>
+    <object>objects\obj_enemy_3</object>
+    <object>objects\obj_water</object>
   </objects>
   <rooms name="rooms">
     <room>rooms\room0</room>
+    <room>rooms\room1</room>
   </rooms>
   <constants number="11">
     <constant name="windowYRatio">view_hport[0]/view_hview[0]</constant>

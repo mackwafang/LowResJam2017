@@ -35,21 +35,59 @@ targetY = (irandom(room_height) div gridSize)*gridSize;
 canMove = true;
 moveSpeed = 0.5;
 fire = 0;
-turrentAngle = 0;
+turretAngle = 0;
+turretTurnRate = 1;
 bodyAngle = 0;
-displayTurrentAngle = 0;
+bodyTurnRate = 1;
+displayTurretAngle = 0;
 displayBodyAngle = 0;
 path = path_add();
 
 e_reload = false;
 e_reloadTime = 0;
 e_reloadMaxTime = 120;
-damage = 0
+damage = 0;
+
+/*********** TANK BODY *************/
+switch(object_index) {
+    case obj_enemy_1: case obj_enemy_2:
+        tankBody = spr_tank_body;
+        break;
+    case obj_enemy_3:
+        tankBody = spr_tank_body2;
+        break;
+}
 
 xPrev = x;
 yPrev = y;
 xTo = x;
 yTo = y;
+</string>
+          </argument>
+        </arguments>
+      </action>
+    </event>
+    <event eventtype="2" enumb="0">
+      <action>
+        <libid>1</libid>
+        <id>603</id>
+        <kind>7</kind>
+        <userelative>0</userelative>
+        <isquestion>0</isquestion>
+        <useapplyto>-1</useapplyto>
+        <exetype>2</exetype>
+        <functionname></functionname>
+        <codestring></codestring>
+        <whoName>self</whoName>
+        <relative>0</relative>
+        <isnot>0</isnot>
+        <arguments>
+          <argument>
+            <kind>1</kind>
+            <string>var ind = instance_create(x+(sprite_width/2),y+(sprite_height/2),obj_dmg_inc);
+ind.damage = 100*(type+1);
+ind.size = 1;
+ind.wait = -30;
 </string>
           </argument>
         </arguments>
@@ -72,7 +110,8 @@ yTo = y;
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>if (canMove) {
+            <string>/*********** MOVING *************/
+if (canMove) {
     if (xTo == x &amp;&amp; yTo == y) {
         if (xPrev != xTo || yPrev != yTo) {
             mp_grid_clear_cell(mpGrid, xPrev div gridSize, yPrev div gridSize);
@@ -82,15 +121,9 @@ yTo = y;
         var pathFound = false;
         mp_grid_clear_cell(mpGrid, x div gridSize, y div gridSize);
         switch(type) {
-            case 0: //Random
+            case 0: case 2://Random
                 var pathFound = mp_grid_path(mpGrid,path,x,y,targetX,targetY,false);
-                if (targetX != x &amp;&amp; targetY != y) {
-                    if (irandom(5) == 0) {
-                        targetX = (irandom(room_width) div gridSize)*gridSize;
-                        targetY = (irandom(room_height) div gridSize)*gridSize;
-                    }
-                }
-                else {
+                if (!pathFound || (targetX == x &amp;&amp; targetY == y)) {
                     targetX = (irandom(room_width) div gridSize)*gridSize;
                     targetY = (irandom(room_height) div gridSize)*gridSize;
                 }
@@ -155,37 +188,37 @@ yTo = y;
     }
     else {
         var image_ad = angle_difference(direction,displayBodyAngle);
-        displayBodyAngle += sign(image_ad);
+        displayBodyAngle += sign(image_ad)*bodyTurnRate;
         if (abs(image_ad) &gt; 0) {
             image_index += 0.5;
         }
     }
     if (instance_exists(obj_player)) {
-        /************* TURRENT *************/
+        /************* turret *************/
         switch(type) {
             case 0: //random
-                displayTurrentAngle = displayBodyAngle;
+                displayTurretAngle = displayBodyAngle;
                 break;
             case 1: 
-                turrentAngle = (point_direction(x,y,obj_player.x,obj_player.y) div 90)*90;
-                var g_d = angle_difference(turrentAngle,displayTurrentAngle);
-                displayTurrentAngle += sign(g_d);
+                turretAngle = (point_direction(x,y,obj_player.x,obj_player.y) div 90)*90;
+                var g_d = angle_difference(turretAngle,displayTurretAngle);
+                displayTurretAngle += sign(g_d)*turretTurnRate;
                 break;
         }
     
         /************* FIRING *************/
         if (fire &lt;= 0) {fire += 0.1;}
         if (fire &gt; 0) {
-            var a = sin(degtorad(turrentAngle));
-            var d = sin(degtorad(displayTurrentAngle));
+            var a = sin(degtorad(turretAngle));
+            var d = sin(degtorad(displayTurretAngle));
             
-            var inView = collision_line(x+(sprite_width/2),y+(sprite_height/2),x+(sprite_width/2)+lengthdir_x(200,displayTurrentAngle),y+(sprite_height/2)+lengthdir_y(200,displayTurrentAngle),obj_player,false,false);
+            var inView = collision_line(x+(sprite_width/2),y+(sprite_height/2),x+(sprite_width/2)+lengthdir_x(200,displayTurretAngle),y+(sprite_height/2)+lengthdir_y(200,displayTurretAngle),obj_player,false,false);
             var distance = point_distance(x,y,obj_player.x,obj_player.y);
             if (inView &amp;&amp; distance &lt; 200) {
                 if (a == d) {
                     if (!e_reload) {
                         var shell = instance_create(x+(sprite_width/2),y+(sprite_height/2),obj_enemy_shell);
-                        shell.direction = displayTurrentAngle;
+                        shell.direction = displayTurretAngle;
                         shell.speed = 5;
                         shell.image_angle = shell.direction;
                         
@@ -195,11 +228,11 @@ yTo = y;
                 }
             }
             else {
-                if (irandom(10) == 0) {
+                if (irandom(20) == 0) {
                     if (a == d) {
                         if (!e_reload) {
                             var shell = instance_create(x+(sprite_width/2),y+(sprite_height/2),obj_enemy_shell);
-                            shell.direction = displayTurrentAngle;
+                            shell.direction = displayTurretAngle;
                             shell.speed = 5;
                             shell.image_angle = shell.direction;
                             
@@ -212,9 +245,15 @@ yTo = y;
         }
     }
 }
+else {
+    if (mp_grid_get_cell(mpGrid, x div gridSize, y div gridSize) == -1) {
+        mp_grid_clear_cell(mpGrid,x div gridSize, y div gridSize);
+    }
+}
 /************* DESTROYED *************/
 if (enemyHealth &lt;= 0) {
     enemyHealth = 0;
+    solid = false;
     canMove = false;
 }
 /************* RELOAD *************/
@@ -226,6 +265,10 @@ if (e_reload) {
         e_reloadTime = 0;
         e_reload = false;
     }
+}
+/************* LEVEL COMPLETE *************/
+if (enemiesLeft == 0 &amp;&amp; checkAliveEnemies() == 0) {
+    levelComplete = true;
 }
 </string>
           </argument>
@@ -249,26 +292,33 @@ if (e_reload) {
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>var x1 = (x+(sprite_width/2))-other.x;
+            <string>/*var x1 = (x+(sprite_width/2))-other.x;
 var y1 = (y+(sprite_height/2))-other.y;
-var x2 = lengthdir_x(1,direction);
-var y2 = lengthdir_y(1,direction);
+var x2 = lengthdir_x(1,displayBodyAngle);
+var y2 = lengthdir_y(1,displayBodyAngle);
 var adist = sqrt(sqr(x1)+sqr(y1));
 var bdist = sqrt(sqr(x2)+sqr(y2));
 var angle = arccos(dot_product(x1,y1,x2,y2)/max(1,adist*bdist))/pi;
-damage = 3-angle;
-
-enemyHealth -= damage;
-if (enemyHealth &lt;= 0) {
-    part_particles_create(explosionSystem,x,y,explosionType,1);
-    var ind = instance_create(x+(sprite_width/2),y+(sprite_height/2),obj_dmg_inc);
-    ind.damage = 100*(type+1);
-    ind.size = 1;
-    ind.wait = -30;
+var baseDamage = 0;*/
+print(other.type);
+switch(other.type) {
+    case 0: //HE
+        damage = 3;
+        break;
+    case 1: //AP
+        damage = 5;
+        break;
 }
-with(other) {
-    part_particles_create(explosionSystem,x,y,explosionType,1);
-    instance_destroy();
+enemyHealth -= damage;
+if (enemyHealth &lt;= 0 &amp;&amp; canMove) {
+    repeat(5) part_particles_create(explosionSystem,x+irandom(sprite_width),y+irandom(sprite_height),explosionType,1);
+    alarm[0] = 60;
+}
+if (canMove) {
+    with(other) {
+        part_particles_create(explosionSystem,x,y,explosionType,1);
+        instance_destroy();
+    }
 }
 </string>
           </argument>
@@ -292,18 +342,34 @@ with(other) {
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>var displayColor = red;
-if (!canMove) {
-    displayColor = make_colour_rgb(105,0,0);
+            <string>var displayColor = white;
+switch(object_index) {
+    case obj_enemy_1:
+        displayColor = red;
+        break;
+    case obj_enemy_2:
+        displayColor = c_gray;
+        break;
+    case obj_enemy_3:
+        displayColor = yellow;
+        break;
+    default:
+        show_error("OBJECT '"+string(object_index)+"' DOES NOT EXISTS",true);
+        break;
 }
-draw_sprite_ext(spr_tank_body,image_index,x+(sprite_width/2),y+(sprite_height/2),1,1,displayBodyAngle,displayColor,1);
+if (!canMove) {
+    displayColor = make_colour_hsv(colour_get_hue(displayColor),colour_get_saturation(displayColor),colour_get_value(displayColor)*0.5);
+}
+draw_sprite_ext(tankBody,image_index,x+(sprite_width/2),y+(sprite_height/2),1,1,displayBodyAngle,displayColor,1);
 var xx, yy;
-xx = lengthdir_x(fire,displayTurrentAngle);
-yy = lengthdir_y(fire,displayTurrentAngle);
-draw_sprite_ext(spr_tank_turrent,0,x+(sprite_width/2)+xx,y+(sprite_height/2)+yy,1,1,displayTurrentAngle,displayColor,1);
+xx = lengthdir_x(fire,displayTurretAngle);
+yy = lengthdir_y(fire,displayTurretAngle);
+draw_sprite_ext(spr_tank_turret,0,x+(sprite_width/2)+xx,y+(sprite_height/2)+yy,1,1,displayTurretAngle,displayColor,1);
 
-/*draw_path(path,x,y,true);
-draw_circle(path_get_point_x(path,1),path_get_point_y(path,1),3,false);
+/*if (canMove) {
+    draw_path(path,x,y,true);
+    draw_circle(targetX,targetY,3,false);
+}
 </string>
           </argument>
         </arguments>

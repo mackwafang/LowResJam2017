@@ -29,8 +29,15 @@
 globalvar reload;
 globalvar reloadTime;
 globalvar maxReloadTime;
+globalvar ammoType;
 globalvar explosionSystem;
 globalvar explosionType;
+globalvar enemiesLeft;
+globalvar level;
+globalvar spawnEnemies;
+globalvar levelComplete;
+globalvar debugMode;
+debugMode = false;
 /************** EXPLOSION *****************/
 explosionSystem = part_system_create();
 explosionType = part_type_create();
@@ -38,20 +45,70 @@ part_type_sprite(explosionType,spr_explosion,true,false,false);
 part_type_life(explosionType,60,60);
 
 /************** AMMO *****************/
-ammo = 30;
+ammo = 10;
 reload = false;
 reloadTime = 0;
 maxReloadTime = 120;
-
+ammoType = 0;
+/************** LEVELS *****************/
+levelComplete = false;
+level = 3;
+/************** ENEMIES *****************/
+spawnEnemies = true;
+enemiesLeft = 2+(level*3);
 /************** MP GRID *****************/
 globalvar mpGrid;
 mpGrid = mp_grid_create(0,0,room_width div gridSize,room_height div gridSize,gridSize,gridSize);
+mp_grid_add_instances(mpGrid,obj_water,false);
 mp_grid_add_instances(mpGrid,obj_wall,false);
+mp_grid_add_instances(mpGrid,obj_wall2,false);
 /************** FONTS *****************/
 globalvar scoreFont;
 scoreFont = font_add_sprite_ext(spr_score_font,".0123456789",true,1);
 
+globalvar gameFont;
+gameFont = font_add_sprite(spr_game_font,ord("!"),true,0);
+
 display_set_gui_size(view_wview[0],view_hview[0]);
+
+if (spawnEnemies) {alarm[0] = 120;}
+</string>
+          </argument>
+        </arguments>
+      </action>
+    </event>
+    <event eventtype="2" enumb="0">
+      <action>
+        <libid>1</libid>
+        <id>603</id>
+        <kind>7</kind>
+        <userelative>0</userelative>
+        <isquestion>0</isquestion>
+        <useapplyto>-1</useapplyto>
+        <exetype>2</exetype>
+        <functionname></functionname>
+        <codestring></codestring>
+        <whoName>self</whoName>
+        <relative>0</relative>
+        <isnot>0</isnot>
+        <arguments>
+          <argument>
+            <kind>1</kind>
+            <string>if (enemiesLeft &gt; 0) {
+    if (checkAliveEnemies() &lt; 4) {
+        enemiesLeft--;
+        var xx = max(min(irandom(room_width div gridSize),(room_width div gridSize)-2),1);
+        var yy = 1;
+        while (!place_free(xx*gridSize,yy*gridSize)) {
+            xx = max(min(irandom(room_width div gridSize),(room_width div gridSize)-2),1);
+            yy = 1;
+            print(string(xx)+","+string(yy));
+            alarm[0] = 1;
+        }
+        var o = instance_create(xx*gridSize,yy*gridSize,choose(obj_enemy_1,obj_enemy_2,obj_enemy_3));
+    }
+}
+alarm[0] = 120;
 </string>
           </argument>
         </arguments>
@@ -74,7 +131,15 @@ display_set_gui_size(view_wview[0],view_hview[0]);
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>if (instance_exists(obj_player)) {
+            <string>if (debugMode) {
+    view_wview[0] = 160;
+    view_hview[0] = 160;
+}
+else {
+    view_wview[0] = 64;
+    view_hview[0] = 64;
+}
+if (instance_exists(obj_player)) {
     view_xview[0] = min(max(0,obj_player.x-(view_wview[0]/2)+(obj_player.sprite_width/2)),room_width-view_wview[0]);
     view_yview[0] = min(max(0,obj_player.y-(view_hview[0]/2)+(obj_player.sprite_height/2)),room_height-view_hview[0]);
 }
@@ -87,6 +152,17 @@ if (reload) {
         reloadTime = 0;
         reload = false;
     }
+}
+if (keyboard_check_pressed(ord("X"))) {
+    switch(ammoType) {
+        case 0: 
+            ammoType = 1;
+            break;
+        case 1:
+            ammoType = 0;
+            break;
+    }
+    reload = true;
 }
 </string>
           </argument>
@@ -113,24 +189,44 @@ if (reload) {
             <string>var wv = view_wview[0];
 var hv = view_hview[0];
 
-draw_sprite(spr_shell_gui,0,1,hv);
 draw_set_font(scoreFont);
-draw_set_valign(fa_bottom);
-draw_set_halign(fa_left);
-draw_text_colour(6,hv,ammo,white,white,white,white,1);
-if (reloadTime &gt; 0) {
-    draw_set_alpha(0.9);
-    draw_rectangle_colour(0,hv,12,hv-9,0,0,0,0,false);
-    draw_set_alpha(1);
-    draw_set_valign(fa_bottom);
-    draw_set_halign(fa_middle);
-    draw_text_colour(6,hv,string_format((maxReloadTime-reloadTime)/60,1,1),white,white,white,white,1);
+if (!levelComplete) {
+    draw_set_valign(fa_middle);
+    draw_set_halign(fa_left);
+    var xx = 0;
+    if (ammo &gt; 0) {
+        xx = 1;
+    }
+    draw_rectangle_colour(0,hv,((xx+1)*15),hv-9,c_gray,c_gray,c_gray,c_gray,false);
+    draw_sprite(spr_he_gui,0,0,hv);
+    if (ammo &gt; 0) {
+        draw_sprite(spr_shell_gui,0,17,hv);
+        draw_text_colour(23,hv-4,ammo,white,white,white,white,1);
+    }
+    draw_sprite(spr_ammo_selection,0,(ammoType*15),hv);
+    if (reloadTime &gt; 0) {
+        draw_set_alpha(0.9);
+        draw_rectangle_colour((ammoType*15),hv,((ammoType+1)*15),hv-9,0,0,0,0,false);
+        draw_set_alpha(1);
+        draw_set_valign(fa_middle);
+        draw_set_halign(fa_center);
+        draw_text_colour(8+(ammoType*15),hv-4,string_format((maxReloadTime-reloadTime)/60,1,1),white,white,white,white,1);
+    }
+    /*************** ENEMIES COUNTER *****************/
+    draw_set_valign(fa_top);
+    draw_set_halign(fa_left);
+    draw_sprite(spr_enemy_gui,0,0,0);
+    draw_text_colour(9,0,enemiesLeft,white,white,white,white,1);
 }
-/*************** ENEMIES COUNTER *****************/
-draw_set_valign(fa_top);
-draw_set_halign(fa_left);
-draw_sprite(spr_enemy_gui,0,0,0);
-draw_text_colour(9,0,checkAliveEnemies(),white,white,white,white,1);
+else {
+    draw_set_colour(0);
+    draw_rectangle(0,0,wv,hv,false);
+    draw_set_colour(white);
+    draw_set_font(gameFont);
+    draw_set_valign(fa_top);
+    draw_set_halign(fa_middle);
+    draw_text_colour(wv/2,0,"Complete",green,green,green,green,1);
+}
 </string>
           </argument>
         </arguments>
@@ -153,20 +249,20 @@ draw_text_colour(9,0,checkAliveEnemies(),white,white,white,white,1);
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>/*for (var i = 0; i &lt; room_width div gridSize; i++) {
-    for (var j = 0; j &lt; room_height div gridSize; j++) {
-        draw_set_alpha(0.3);
-        if (mp_grid_get_cell(mpGrid,i,j) == -1) {
-            draw_set_colour(red);
+            <string>/*    for (var i = 0; i &lt; room_width div gridSize; i++) {
+        for (var j = 0; j &lt; room_height div gridSize; j++) {
+            draw_set_alpha(0.3);
+            if (mp_grid_get_cell(mpGrid,i,j) == -1) {
+                draw_set_colour(red);
+            }
+            else {
+                draw_set_colour(green);
+            }
+            draw_rectangle(i*gridSize,j*gridSize,(i+1)*gridSize,(j+1)*gridSize,false);
+            draw_set_colour(white);
+            draw_set_alpha(1);
         }
-        else {
-            draw_set_colour(green);
-        }
-        draw_rectangle(i*gridSize,j*gridSize,(i+1)*gridSize,(j+1)*gridSize,false);
-        draw_set_colour(white);
-        draw_set_alpha(1);
     }
-}
 </string>
           </argument>
         </arguments>

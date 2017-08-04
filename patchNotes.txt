@@ -1,0 +1,12 @@
+8/4/17
+	- Added new enemy
+		+ Fast
+		+ High body and turret turn rate
+		+ Low Health of 1
+	- Added level 2
+	- Added small outline for level complete
+	- Added color to different enemies
+	- Removed damage based on angle for enemies
+	
+	- Fixed MP Grid problem with player
+	

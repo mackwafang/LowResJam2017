@@ -8,4 +8,11 @@ for (var i = 0; i < room_height div 8; i++) {
     instance_create(0,i*8,obj_wall2);
     instance_create(room_width-8,i*8,obj_wall2);
 }
-instance_create(0,0,obj_control);
+globalvar mpGrid;
+mpGrid = mp_grid_create(0,0,room_width div gridSize,room_height div gridSize,gridSize,gridSize);
+mp_grid_add_instances(mpGrid,obj_wall,false);
+mp_grid_add_instances(mpGrid,obj_wall2,false);
+mp_grid_add_instances(mpGrid,obj_water,false);
+if (!instance_exists(obj_control)) {
+    instance_create(0,0,obj_control);
+}

@@ -10,3 +10,15 @@
 	
 	- Fixed MP Grid problem with player
 	
+8/8/17
+	- Added new enemy
+		+ Slow
+		+ Low body and turret turn rate
+		+ High health of 10
+		+ Base damage of 4
+	- Added Level 3 and 4
+	- Added level completion screen
+	- Player lives and health
+		+ 3 lives
+		+ 10 health
+	

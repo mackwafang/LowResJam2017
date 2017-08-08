@@ -4,7 +4,7 @@
   <solid>0</solid>
   <visible>-1</visible>
   <depth>0</depth>
-  <persistent>0</persistent>
+  <persistent>-1</persistent>
   <parentName>&lt;undefined&gt;</parentName>
   <maskName>&lt;undefined&gt;</maskName>
   <events>
@@ -38,6 +38,24 @@ globalvar spawnEnemies;
 globalvar levelComplete;
 globalvar debugMode;
 debugMode = false;
+health = 10;
+lives = 3;
+globalvar playerXStart;
+globalvar playerYStart;
+
+playerXStart = 0;
+playerYStart = 0;
+/************** SMOKE PARTICLE *****************/
+globalvar smokeSystem;
+globalvar smokeType;
+smokeSystem = part_system_create();
+smokeType = part_type_create();
+
+part_type_sprite(smokeType,spr_smoke_part,false,false,false);
+part_type_colour1(smokeType,c_gray);
+part_type_scale(smokeType,0.25,0.25);
+part_type_size(smokeType,1,5,0,0);
+part_type_alpha2(smokeType,1,0);
 /************** EXPLOSION *****************/
 explosionSystem = part_system_create();
 explosionType = part_type_create();
@@ -48,17 +66,37 @@ part_type_life(explosionType,60,60);
 ammo = 10;
 reload = false;
 reloadTime = 0;
-maxReloadTime = 120;
+maxReloadTime = 90;
 ammoType = 0;
+/************** OUTSIDE SCREEN KILL INDICATOR *****************/
+globalvar killType;
+globalvar killTypeColor;
+globalvar killScore;
+globalvar killTimer;
+killType = -1;
+killTypeColor = 0;
+killScore = 0;
+killTimer = 0;
 /************** LEVELS *****************/
 levelComplete = false;
-level = 3;
+level = 1;
 /************** ENEMIES *****************/
 spawnEnemies = true;
-enemiesLeft = 2+(level*3);
+enemiesLeft = 3+(level*3);
+/************** KILL LIST *****************/
+globalvar killList;
+for (var i = 0; i &lt; 4; i++) {
+    killList[i] = 0;
+    displayKillList[i] = 0;
+}
+displayKillListIndex = 0;
+displayKillListTimer = 0;
+/************** HIT INDICATOR ANGLE *****************/
+globalvar hitIndAngle;
+globalvar hitIndAlpha;
+hitIndAngle = 0
+hitIndAlpha = 0;
 /************** MP GRID *****************/
-globalvar mpGrid;
-mpGrid = mp_grid_create(0,0,room_width div gridSize,room_height div gridSize,gridSize,gridSize);
 mp_grid_add_instances(mpGrid,obj_water,false);
 mp_grid_add_instances(mpGrid,obj_wall,false);
 mp_grid_add_instances(mpGrid,obj_wall2,false);
@@ -67,11 +105,46 @@ globalvar scoreFont;
 scoreFont = font_add_sprite_ext(spr_score_font,".0123456789",true,1);
 
 globalvar gameFont;
-gameFont = font_add_sprite(spr_game_font,ord("!"),true,0);
+gameFont = font_add_sprite(spr_game_font,ord("!"),true,1);
 
 display_set_gui_size(view_wview[0],view_hview[0]);
 
 if (spawnEnemies) {alarm[0] = 120;}
+</string>
+          </argument>
+        </arguments>
+      </action>
+    </event>
+    <event eventtype="2" enumb="1">
+      <action>
+        <libid>1</libid>
+        <id>603</id>
+        <kind>7</kind>
+        <userelative>0</userelative>
+        <isquestion>0</isquestion>
+        <useapplyto>-1</useapplyto>
+        <exetype>2</exetype>
+        <functionname></functionname>
+        <codestring></codestring>
+        <whoName>self</whoName>
+        <relative>0</relative>
+        <isnot>0</isnot>
+        <arguments>
+          <argument>
+            <kind>1</kind>
+            <string>level++;
+enemiesLeft = 2+(level*3);
+levelComplete = false;
+for (var i = 0; i &lt; 4; i++) {
+    killList[i] = 0;
+    displayKillList[i] = 0;
+}
+health = 10;
+ammo = 10;
+displayKillListIndex = 0;
+displayKillListTimer = 0;
+mp_grid_clear_all(mpGrid);
+room_goto_next();
 </string>
           </argument>
         </arguments>
@@ -98,14 +171,13 @@ if (spawnEnemies) {alarm[0] = 120;}
     if (checkAliveEnemies() &lt; 4) {
         enemiesLeft--;
         var xx = max(min(irandom(room_width div gridSize),(room_width div gridSize)-2),1);
-        var yy = 1;
-        while (!place_free(xx*gridSize,yy*gridSize)) {
+        var yy = max(min(irandom(room_height div gridSize),(room_height div gridSize)-2),1);
+        while (mp_grid_get_cell(mpGrid,xx,yy) == -1) {
             xx = max(min(irandom(room_width div gridSize),(room_width div gridSize)-2),1);
-            yy = 1;
-            print(string(xx)+","+string(yy));
+            yy = max(min(irandom(room_height div gridSize),(room_height div gridSize)-2),1);
             alarm[0] = 1;
         }
-        var o = instance_create(xx*gridSize,yy*gridSize,choose(obj_enemy_1,obj_enemy_2,obj_enemy_3));
+        var o = instance_create(xx*gridSize,yy*gridSize,choose(obj_enemy_1,obj_enemy_2,obj_enemy_3,obj_enemy_4));
     }
 }
 alarm[0] = 120;
@@ -155,8 +227,10 @@ if (reload) {
 }
 if (keyboard_check_pressed(ord("X"))) {
     switch(ammoType) {
-        case 0: 
-            ammoType = 1;
+        case 0:
+            if (ammo &gt; 0) {  
+                ammoType = 1;
+            }
             break;
         case 1:
             ammoType = 0;
@@ -164,6 +238,7 @@ if (keyboard_check_pressed(ord("X"))) {
     }
     reload = true;
 }
+if (killTimer &gt; 0) {killTimer--;}
 </string>
           </argument>
         </arguments>
@@ -191,32 +266,64 @@ var hv = view_hview[0];
 
 draw_set_font(scoreFont);
 if (!levelComplete) {
+    /**************** HIT IND ******************/
+    if (hitIndAlpha &gt; 0) {
+        hitIndAlpha *= 0.99;
+        draw_sprite_ext(spr_hit_ind,0,(view_wview[0]/2)+lengthdir_x(16,hitIndAngle),(view_hview[0]/2)+lengthdir_y(16,hitIndAngle),1,1,hitIndAngle,white,hitIndAlpha);
+    }
     draw_set_valign(fa_middle);
     draw_set_halign(fa_left);
     var xx = 0;
     if (ammo &gt; 0) {
         xx = 1;
     }
-    draw_rectangle_colour(0,hv,((xx+1)*15),hv-9,c_gray,c_gray,c_gray,c_gray,false);
+    draw_rectangle_colour(0,hv,((xx+1)*15),hv-10,c_gray,c_gray,c_gray,c_gray,false);
     draw_sprite(spr_he_gui,0,0,hv);
     if (ammo &gt; 0) {
         draw_sprite(spr_shell_gui,0,17,hv);
-        draw_text_colour(23,hv-4,ammo,white,white,white,white,1);
+        draw_text_colour(23,hv-5,ammo,white,white,white,white,1);
     }
-    draw_sprite(spr_ammo_selection,0,(ammoType*15),hv);
     if (reloadTime &gt; 0) {
         draw_set_alpha(0.9);
         draw_rectangle_colour((ammoType*15),hv,((ammoType+1)*15),hv-9,0,0,0,0,false);
         draw_set_alpha(1);
         draw_set_valign(fa_middle);
         draw_set_halign(fa_center);
-        draw_text_colour(8+(ammoType*15),hv-4,string_format((maxReloadTime-reloadTime)/60,1,1),white,white,white,white,1);
+        draw_text_colour(9+(ammoType*15),hv-5,string_format((maxReloadTime-reloadTime)/60,1,1),white,white,white,white,1);
     }
+    draw_sprite(spr_ammo_selection,0,(ammoType*15),hv);
+    /*************** LIVES *****************/
+    draw_set_valign(fa_top);
+    draw_set_halign(fa_right);
+    draw_sprite_ext(spr_enemy_gui,0,wv-5,hv-5,1,1,0,green,1);
+    draw_text_colour(wv-5,hv-5,lives,white,white,white,white,1);
     /*************** ENEMIES COUNTER *****************/
     draw_set_valign(fa_top);
     draw_set_halign(fa_left);
-    draw_sprite(spr_enemy_gui,0,0,0);
+    draw_sprite_ext(spr_enemy_gui,0,0,0,1,1,0,0,1);
     draw_text_colour(9,0,enemiesLeft,white,white,white,white,1);
+    
+    /*************** KILL OUTSIDE OF SCREEN INDICATOR *****************/
+    if (killTimer &gt; 0) {
+        var s = 0;
+        switch(killType) {
+            case 0: case 1:
+                s = spr_tank_body;
+                break;
+            case 2:
+                s = spr_tank_body2;
+                break;
+            case 3:
+                s = spr_tank_body3
+                break;
+        }
+        draw_sprite_ext(s,0,wv-4,4,1,1,0,killTypeColor,1);
+        draw_sprite_ext(spr_tank_turret,0,wv-4,4,1,1,0,killTypeColor,1);
+        
+        draw_set_valign(fa_top);
+        draw_set_halign(fa_right);
+        draw_text_colour(wv-8,2,killScore,white,white,white,white,1);
+    }
 }
 else {
     draw_set_colour(0);
@@ -225,7 +332,82 @@ else {
     draw_set_font(gameFont);
     draw_set_valign(fa_top);
     draw_set_halign(fa_middle);
-    draw_text_colour(wv/2,0,"Complete",green,green,green,green,1);
+    draw_text_colour(wv/2,0,"Level Complete",green,green,green,green,1);
+    var s = 0;
+    var c = 0;
+    for (var i = 0; i &lt; array_length_1d(killList); i++) {
+        switch(i) {
+            case 0: case 1:
+                s = spr_tank_body;
+                break;
+            case 2:
+                s = spr_tank_body2;
+                break;
+            case 3:
+                s = spr_tank_body3
+                break;
+        }
+        switch(i) {
+            case 0:
+                c = red;
+                break;
+            case 1:
+                c = c_gray;
+                break;
+            case 2:
+                c = yellow;
+                break;
+            case 3:
+                c = white;
+                break;
+            default:
+                show_error("OBJECT DOES NOT EXISTS",true);
+                break;
+        }
+        draw_sprite_ext(s,0,8,16+(i*9),1,1,0,c,1);
+        draw_sprite_ext(spr_tank_turret,0,8,16+(i*9),1,1,0,c,1);
+        draw_set_valign(fa_middle);
+        draw_set_halign(fa_left);
+        draw_text_colour(16,16+(i*9),string(displayKillList[i])+"x"+string(100*(i+1)),white,white,white,white,1);
+        draw_set_valign(fa_middle);
+        draw_set_halign(fa_right);
+        draw_text_colour(((view_wview[0] div gridSize)-1)*gridSize,16+(i*9),displayKillList[i]*(100*(i+1)),white,white,white,white,1);
+    }
+    var x1 = 1;
+    var x2 = (view_wview[0] div gridSize)-1;
+    var y1 = 6;
+    var y2 = 6.1;
+    draw_rectangle_colour(x1*gridSize,y1*gridSize,x2*gridSize,y2*gridSize,white,white,white,white,false);
+    
+    /******** TOTAL ********/
+    var totalThisLevel = 0;
+    var timeToNextRoom = 0;
+    var scoreInc = 0;
+    for (var i = 0; i &lt; array_length_1d(killList); i++){
+        scoreInc = displayKillList[i]*(100*(i+1));
+        totalThisLevel += scoreInc;
+        timeToNextRoom += displayKillList[i]*10;
+    }
+    draw_set_valign(fa_top);
+    draw_set_halign(fa_right);
+    draw_text_colour(x2*gridSize,y2*gridSize,totalThisLevel,white,white,white,white,1);
+    draw_text_colour(x2*gridSize,(y2+1)*gridSize,score,white,white,white,white,1);
+    displayKillListTimer++;
+    if (displayKillListTimer mod 10 == 0) {
+        if (displayKillListIndex &lt; array_length_1d(killList)) {
+            if (displayKillList[displayKillListIndex] &lt; killList[displayKillListIndex]) {
+                displayKillList[displayKillListIndex]++;
+                score += 100*(displayKillListIndex+1);
+            }
+            else {
+                displayKillListIndex++;
+            }
+        }
+    }
+    if (displayKillListTimer == timeToNextRoom+120) {
+        alarm[1] = 120;
+    }
+    print(string(timeToNextRoom+120)+"   "+string(displayKillListTimer))
 }
 </string>
           </argument>
@@ -249,7 +431,7 @@ else {
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>/*    for (var i = 0; i &lt; room_width div gridSize; i++) {
+            <string>/*for (var i = 0; i &lt; room_width div gridSize; i++) {
         for (var j = 0; j &lt; room_height div gridSize; j++) {
             draw_set_alpha(0.3);
             if (mp_grid_get_cell(mpGrid,i,j) == -1) {

@@ -40,5 +40,15 @@
 	- Increase enemies random firing when not in view of player or wall
 	- Decrease enemies reload time from 2s to 1.5s
 	- Capped maximum enemies to spawn to 30
+	
+	- Changed pick-up sprites
+	- Changed random movement enemies AI
+	  	+ Turret is not free instead of fixed
+	- Changed health of enemy_1 from 5 to 3
+	- Changed health of enemy_2 from 3 to 5
+	- Changed player respawn time to random
+
+	- Added title screen
 	- Added level 8
+	- Added new level indicator
 	- Minor buf fixes

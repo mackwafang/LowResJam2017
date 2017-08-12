@@ -16,3 +16,9 @@ if (instance_exists(obj_wall2)) {mp_grid_add_instances(mpGrid,obj_wall2,false);}
 if (!instance_exists(obj_control)) {
     instance_create(0,0,obj_control);
 }
+else {
+    with(obj_control) {
+        nl_timer = 180;
+        nl_size = 3;
+    }
+}

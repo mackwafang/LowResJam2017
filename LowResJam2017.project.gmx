@@ -31,9 +31,12 @@
     <sprite>sprites\spr_hit_ind</sprite>
     <sprite>sprites\spr_smoke_part</sprite>
     <sprite>sprites\spr_pick_up</sprite>
+    <sprite>sprites\spr_level_bkg</sprite>
+    <sprite>sprites\spr_level_font</sprite>
   </sprites>
   <backgrounds name="background">
     <background>background\bkg_grass</background>
+    <background>background\bkg_title</background>
   </backgrounds>
   <paths name="paths"/>
   <scripts name="scripts">
@@ -62,8 +65,10 @@
     <object>objects\obj_enemy_3</object>
     <object>objects\obj_enemy_4</object>
     <object>objects\obj_pickup</object>
+    <object>objects\obj_title_control</object>
   </objects>
   <rooms name="rooms">
+    <room>rooms\rm_title</room>
     <room>rooms\room0</room>
     <room>rooms\room1</room>
     <room>rooms\room2</room>

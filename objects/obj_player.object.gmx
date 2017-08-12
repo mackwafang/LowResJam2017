@@ -61,17 +61,25 @@ yTo = y;
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>while (!place_free(playerXStart,playerYStart)) {
-    print("Respawning: "+string(x)+","+string(y));
+            <string>if (lives &gt; 0) {
     playerXStart = (irandom(room_width) div gridSize)*gridSize;
     playerYStart = (irandom(room_height) div gridSize)*gridSize;
+    while (!place_free(playerXStart,playerYStart)) {
+        print("Respawning: "+string(x)+","+string(y));
+        playerXStart = (irandom(room_width) div gridSize)*gridSize;
+        playerYStart = (irandom(room_height) div gridSize)*gridSize;
+    }
+    x = playerXStart;
+    y = playerYStart;
+    maxReloadTime = 90;
+    health = 10;
+    lives--;
+    canMove = true;
 }
-x = playerXStart;
-y = playerYStart;
-maxReloadTime = 90;
-health = 10;
-lives--;
-canMove = true;
+else {
+    gameOver = true;
+    obj_control.alarm[2] = 300;
+}
 </string>
           </argument>
         </arguments>

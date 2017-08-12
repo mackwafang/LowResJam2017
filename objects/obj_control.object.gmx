@@ -41,7 +41,9 @@ globalvar debugMode;
 globalvar explodeSound;
 globalvar shootSound;
 globalvar explodeDeadSound;
+globalvar gameOver;
 
+gameOver = false;
 shootSound = snd_shoot;
 explodeSound = snd_explosion;
 explodeDeadSound = snd_dead_explosion;
@@ -53,6 +55,10 @@ globalvar playerYStart;
 
 playerXStart = 0;
 playerYStart = 0;
+/************** NEW LEVEL IND *****************/
+nl_timer = 180;
+nl_size = 3;
+nl_font = font_add_sprite_ext(spr_level_font,".0123456789",false,0);
 /************** SMOKE PARTICLE *****************/
 globalvar smokeSystem;
 globalvar smokeType;
@@ -91,7 +97,7 @@ levelComplete = false;
 level = 1;
 /************** ENEMIES *****************/
 spawnEnemies = true;
-enemiesLeft = 3+(level*3);
+enemiesLeft = min(3+(level*3),30);
 /************** KILL LIST *****************/
 globalvar killList;
 for (var i = 0; i &lt; 4; i++) {
@@ -119,6 +125,30 @@ gameFont = font_add_sprite(spr_game_font,ord("!"),true,1);
 display_set_gui_size(view_wview[0],view_hview[0]);
 
 if (spawnEnemies) {alarm[0] = 120;}
+</string>
+          </argument>
+        </arguments>
+      </action>
+    </event>
+    <event eventtype="2" enumb="2">
+      <action>
+        <libid>1</libid>
+        <id>603</id>
+        <kind>7</kind>
+        <userelative>0</userelative>
+        <isquestion>0</isquestion>
+        <useapplyto>-1</useapplyto>
+        <exetype>2</exetype>
+        <functionname></functionname>
+        <codestring></codestring>
+        <whoName>self</whoName>
+        <relative>0</relative>
+        <isnot>0</isnot>
+        <arguments>
+          <argument>
+            <kind>1</kind>
+            <string>instance_destroy();
+room_goto(rm_title);
 </string>
           </argument>
         </arguments>
@@ -229,6 +259,13 @@ else {
 if (instance_exists(obj_player)) {
     view_xview[0] = min(max(0,obj_player.x-(view_wview[0]/2)+(obj_player.sprite_width/2)),room_width-view_wview[0]);
     view_yview[0] = min(max(0,obj_player.y-(view_hview[0]/2)+(obj_player.sprite_height/2)),room_height-view_hview[0]);
+}
+/************** NEW LEVEL IND *************/
+if (nl_timer &gt; 0) {
+    nl_timer--;
+    if (nl_size &gt; 1) {
+        nl_size *= 0.9;
+    }
 }
 /************** RELOAD *************/
 if (reload) {
@@ -344,6 +381,19 @@ if (!levelComplete) {
         draw_set_halign(fa_right);
         draw_text_colour(wv-8,2,killScore,white,white,white,white,1);
     }
+    if (nl_timer &gt; 0) {
+        draw_sprite_ext(spr_level_bkg,0,wv/2,hv/2,1,1,0,white,nl_timer/60);
+        draw_set_font(nl_font);
+        draw_set_valign(fa_top);
+        draw_set_halign(fa_center);
+        draw_text_transformed_colour(wv/2,hv/2,level,nl_size,nl_size,0,white,white,white,white,nl_timer/60);
+    }
+    if (gameOver) {
+        draw_set_font(gameFont);
+        draw_set_valign(fa_middle);
+        draw_set_halign(fa_center);
+        draw_text_transformed_colour(wv/2,hv/2,"GAME#OVER",2,2,0,red,red,red,red,1);
+    }
 }
 else {
     draw_set_colour(0);
@@ -416,6 +466,11 @@ else {
     draw_set_halign(fa_right);
     draw_text_colour(x2*gridSize,y2*gridSize,totalThisLevel,white,white,white,white,1);
     draw_text_colour(x2*gridSize,(y2+1)*gridSize,score,white,white,white,white,1);
+    
+    draw_set_valign(fa_top);
+    draw_set_halign(fa_left);
+    draw_text_colour(x1*gridSize,y2*gridSize,"Level",white,white,white,white,1);
+    draw_text_colour(x1*gridSize,(y2+1)*gridSize,"Total",white,white,white,white,1);
     displayKillListTimer++;
     if (displayKillListTimer mod 10 == 0) {
         if (displayKillListIndex &lt; array_length_1d(killList)) {

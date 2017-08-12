@@ -92,6 +92,9 @@ yTo = y;
             <kind>1</kind>
             <string>if (enemiesLeft == 0 &amp;&amp; checkAliveEnemies() == 0) {
     levelComplete = true;
+    if (instance_exists(obj_player)) {
+        obj_player.canMove = true;
+    }
 }
 else {
     if ((x &gt; view_xview[0] &amp;&amp; x &lt; view_xview[0]+view_wview[0]) &amp;&amp; (y &gt; view_yview[0] &amp;&amp; y &lt; view_yview[0]+view_hview[0])) {
@@ -224,32 +227,44 @@ if (canMove) {
         if (fire &gt; 0) {
             var a = sin(degtorad(turretAngle));
             var d = sin(degtorad(displayTurretAngle));
-            
-            var o = obj_player || obj_wall;
-            var inView = collision_line(x+(sprite_width/2),y+(sprite_height/2),x+(sprite_width/2)+lengthdir_x(200,displayTurretAngle),y+(sprite_height/2)+lengthdir_y(200,displayTurretAngle),o,false,false);
+            var inView = collision_line(x+(sprite_width/2),y+(sprite_height/2),x+(sprite_width/2)+lengthdir_x(200,displayTurretAngle),y+(sprite_height/2)+lengthdir_y(200,displayTurretAngle),all,false,false);
+            //print("collision: "+string(object_get_name(inView.object_index)));
+            var c = (inView == obj_player || inView == obj_wall);
             var distance = point_distance(x,y,obj_player.x,obj_player.y);
-            if (inView &amp;&amp; distance &lt; 200) {
+            if (c &amp;&amp; distance &lt; 200) {
                 if (a == d) {
                     if (!e_reload) {
                         var shell = instance_create(x+(sprite_width/2),y+(sprite_height/2),obj_enemy_shell);
                         shell.direction = displayTurretAngle;
                         shell.speed = 5;
                         shell.image_angle = shell.direction;
-                        
+                        switch(type) {
+                            case 0:
+                                shell.baseDamage = 1;
+                            case 3: 
+                                shell.baseDamage = 2;
+                                break;
+                        }
                         fire -= 2;
                         e_reload = true;
                     }
                 }
             }
             else {
-                if (irandom(20) == 0) {
+                if (irandom(10) == 0) {
                     if (a == d) {
                         if (!e_reload) {
                             var shell = instance_create(x+(sprite_width/2),y+(sprite_height/2),obj_enemy_shell);
                             shell.direction = displayTurretAngle;
                             shell.speed = 5;
                             shell.image_angle = shell.direction;
-                            
+                            switch(type) {
+                                case 0:
+                                    shell.baseDamage = 1;
+                                case 3: 
+                                    shell.baseDamage = 2;
+                                    break;
+                            }
                             fire -= 2;
                             e_reload = true;
                         }
@@ -325,7 +340,12 @@ if (enemyHealth &lt;= 0 &amp;&amp; canMove) {
     enemyHealth = 0;
     solid = false;
     canMove = false;
-    if ((x &lt; view_xview[0] &amp;&amp; x &gt; view_xview[0]+view_wview[0]) &amp;&amp; (y &lt; view_yview[0] &amp;&amp; y &gt; view_yview[0]+view_hview[0])) {
+    depth = 100;
+    audio_play_sound(explodeDeadSound,1,false);
+    if (irandom(3) == 0) {
+        instance_create(x,y,obj_pickup);
+    }
+    if ((x &lt; view_xview[0] || x &gt; view_xview[0]+view_wview[0]) || (y &lt; view_yview[0] || y &gt; view_yview[0]+view_hview[0])) {
         killTimer = 120;
         killType = type;
         killScore = 100*(type+1);
@@ -398,7 +418,11 @@ draw_sprite_ext(tankBody,image_index,x+(sprite_width/2),y+(sprite_height/2),1,1,
 var xx, yy;
 xx = lengthdir_x(fire,displayTurretAngle);
 yy = lengthdir_y(fire,displayTurretAngle);
-draw_sprite_ext(spr_tank_turret,0,x+(sprite_width/2)+xx,y+(sprite_height/2)+yy,1,1,displayTurretAngle,displayColor,1);
+var turretSprite = 0;
+if (type == 0) {
+    turretSprite = 1;
+}
+draw_sprite_ext(spr_tank_turret,turretSprite,x+(sprite_width/2)+xx,y+(sprite_height/2)+yy,1,1,displayTurretAngle,displayColor,1);
 
 /*if (canMove) {
     draw_path(path,x,y,true);

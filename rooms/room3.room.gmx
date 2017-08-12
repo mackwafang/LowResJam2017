@@ -208,6 +208,10 @@ while (enemiesToSpawn-- &gt; 0) {
     <instance objName="obj_wall" x="80" y="80" name="inst_8BAFD4A7" locked="0" code="" scaleX="1" scaleY="1" colour="4294967295" rotation="0"/>
     <instance objName="obj_wall" x="80" y="72" name="inst_DC906F7C" locked="0" code="" scaleX="1" scaleY="1" colour="4294967295" rotation="0"/>
     <instance objName="obj_player" x="8" y="144" name="inst_235ED644" locked="0" code="" scaleX="1" scaleY="1" colour="4294967295" rotation="0"/>
+    <instance objName="obj_enemy_3" x="8" y="56" name="inst_F95701E7" locked="0" code="" scaleX="1" scaleY="1" colour="4294967295" rotation="0"/>
+    <instance objName="obj_enemy_3" x="8" y="96" name="inst_DAE65D8C" locked="0" code="" scaleX="1" scaleY="1" colour="4294967295" rotation="0"/>
+    <instance objName="obj_enemy_3" x="144" y="56" name="inst_7FCD3E50" locked="0" code="" scaleX="1" scaleY="1" colour="4294967295" rotation="0"/>
+    <instance objName="obj_enemy_3" x="144" y="96" name="inst_B9A5DDDD" locked="0" code="" scaleX="1" scaleY="1" colour="4294967295" rotation="0"/>
   </instances>
   <tiles>
     <tile bgName="bkg_grass" x="16" y="56" w="8" h="8" xo="0" yo="0" id="10000060" name="inst_301675C5" depth="-1000000" locked="0" colour="4294967295" scaleX="1" scaleY="1"/>

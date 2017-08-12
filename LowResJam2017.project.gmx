@@ -4,7 +4,11 @@
     <Config>Configs\Default</Config>
   </Configs>
   <NewExtensions/>
-  <sounds name="sound"/>
+  <sounds name="sound">
+    <sound>sound\snd_shoot</sound>
+    <sound>sound\snd_explosion</sound>
+    <sound>sound\snd_dead_explosion</sound>
+  </sounds>
   <sprites name="sprites">
     <sprite>sprites\spr_tank_body</sprite>
     <sprite>sprites\spr_tank_body2</sprite>
@@ -26,6 +30,7 @@
     <sprite>sprites\spr_game_font</sprite>
     <sprite>sprites\spr_hit_ind</sprite>
     <sprite>sprites\spr_smoke_part</sprite>
+    <sprite>sprites\spr_pick_up</sprite>
   </sprites>
   <backgrounds name="background">
     <background>background\bkg_grass</background>
@@ -56,12 +61,18 @@
     <object>objects\obj_enemy_2</object>
     <object>objects\obj_enemy_3</object>
     <object>objects\obj_enemy_4</object>
+    <object>objects\obj_pickup</object>
   </objects>
   <rooms name="rooms">
     <room>rooms\room0</room>
     <room>rooms\room1</room>
     <room>rooms\room2</room>
     <room>rooms\room3</room>
+    <room>rooms\room4</room>
+    <room>rooms\room5</room>
+    <room>rooms\room6</room>
+    <room>rooms\room7</room>
+    <room>rooms\rm_test</room>
   </rooms>
   <constants number="11">
     <constant name="windowYRatio">view_hport[0]/view_hview[0]</constant>

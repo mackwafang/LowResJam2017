@@ -26,6 +26,7 @@
           <argument>
             <kind>1</kind>
             <string>globalvar ammo;
+globalvar maxAmmo;
 globalvar reload;
 globalvar reloadTime;
 globalvar maxReloadTime;
@@ -37,6 +38,13 @@ globalvar level;
 globalvar spawnEnemies;
 globalvar levelComplete;
 globalvar debugMode;
+globalvar explodeSound;
+globalvar shootSound;
+globalvar explodeDeadSound;
+
+shootSound = snd_shoot;
+explodeSound = snd_explosion;
+explodeDeadSound = snd_dead_explosion;
 debugMode = false;
 health = 10;
 lives = 3;
@@ -63,7 +71,8 @@ part_type_sprite(explosionType,spr_explosion,true,false,false);
 part_type_life(explosionType,60,60);
 
 /************** AMMO *****************/
-ammo = 10;
+maxAmmo = 10;
+ammo = maxAmmo;
 reload = false;
 reloadTime = 0;
 maxReloadTime = 90;
@@ -97,9 +106,9 @@ globalvar hitIndAlpha;
 hitIndAngle = 0
 hitIndAlpha = 0;
 /************** MP GRID *****************/
-mp_grid_add_instances(mpGrid,obj_water,false);
-mp_grid_add_instances(mpGrid,obj_wall,false);
-mp_grid_add_instances(mpGrid,obj_wall2,false);
+if (instance_exists(obj_water)) {mp_grid_add_instances(mpGrid,obj_water,false);}
+//if (instance_exists(obj_wall)) {mp_grid_add_instances(mpGrid,obj_wall,false);}
+if (instance_exists(obj_wall2)) {mp_grid_add_instances(mpGrid,obj_wall2,false);}
 /************** FONTS *****************/
 globalvar scoreFont;
 scoreFont = font_add_sprite_ext(spr_score_font,".0123456789",true,1);
@@ -132,8 +141,10 @@ if (spawnEnemies) {alarm[0] = 120;}
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>level++;
+            <string>///Level complete
+level++;
 enemiesLeft = 2+(level*3);
+maxReloadTime = 90;
 levelComplete = false;
 for (var i = 0; i &lt; 4; i++) {
     killList[i] = 0;
@@ -141,8 +152,12 @@ for (var i = 0; i &lt; 4; i++) {
 }
 health = 10;
 ammo = 10;
+ammoType = 0;
 displayKillListIndex = 0;
 displayKillListTimer = 0;
+if (instance_exists(obj_player)) {
+    obj_player.canMove = true;
+}
 mp_grid_clear_all(mpGrid);
 room_goto_next();
 </string>
@@ -226,6 +241,7 @@ if (reload) {
     }
 }
 if (keyboard_check_pressed(ord("X"))) {
+    reloadTime = 0;
     switch(ammoType) {
         case 0:
             if (ammo &gt; 0) {  
@@ -317,8 +333,12 @@ if (!levelComplete) {
                 s = spr_tank_body3
                 break;
         }
+        var turretSprite = 0;
+        if (killType == 0) {
+            turretSprite = 1;
+        }
         draw_sprite_ext(s,0,wv-4,4,1,1,0,killTypeColor,1);
-        draw_sprite_ext(spr_tank_turret,0,wv-4,4,1,1,0,killTypeColor,1);
+        draw_sprite_ext(spr_tank_turret,turretSprite,wv-4,4,1,1,0,killTypeColor,1);
         
         draw_set_valign(fa_top);
         draw_set_halign(fa_right);
@@ -365,7 +385,11 @@ else {
                 break;
         }
         draw_sprite_ext(s,0,8,16+(i*9),1,1,0,c,1);
-        draw_sprite_ext(spr_tank_turret,0,8,16+(i*9),1,1,0,c,1);
+        var turretSprite = 0;
+        if (i == 0) {
+            turretSprite = 1;
+        }
+        draw_sprite_ext(spr_tank_turret,turretSprite,8,16+(i*9),1,1,0,c,1);
         draw_set_valign(fa_middle);
         draw_set_halign(fa_left);
         draw_text_colour(16,16+(i*9),string(displayKillList[i])+"x"+string(100*(i+1)),white,white,white,white,1);

@@ -10,9 +10,9 @@ for (var i = 0; i < room_height div 8; i++) {
 }
 globalvar mpGrid;
 mpGrid = mp_grid_create(0,0,room_width div gridSize,room_height div gridSize,gridSize,gridSize);
-mp_grid_add_instances(mpGrid,obj_wall,false);
-mp_grid_add_instances(mpGrid,obj_wall2,false);
-mp_grid_add_instances(mpGrid,obj_water,false);
+if (instance_exists(obj_water)) {mp_grid_add_instances(mpGrid,obj_water,false);}
+//if (instance_exists(obj_wall)) {mp_grid_add_instances(mpGrid,obj_wall,false);}
+if (instance_exists(obj_wall2)) {mp_grid_add_instances(mpGrid,obj_wall2,false);}
 if (!instance_exists(obj_control)) {
     instance_create(0,0,obj_control);
 }

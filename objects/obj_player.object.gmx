@@ -62,12 +62,13 @@ yTo = y;
           <argument>
             <kind>1</kind>
             <string>while (!place_free(playerXStart,playerYStart)) {
-    print(string(x)+","+string(y));
+    print("Respawning: "+string(x)+","+string(y));
     playerXStart = (irandom(room_width) div gridSize)*gridSize;
     playerYStart = (irandom(room_height) div gridSize)*gridSize;
 }
 x = playerXStart;
 y = playerYStart;
+maxReloadTime = 90;
 health = 10;
 lives--;
 canMove = true;
@@ -108,9 +109,16 @@ canMove = true;
         mp_grid_add_cell(mpGrid,xTo div gridSize,yTo div gridSize);
     }
 }*/
+if (place_meeting(x,y,obj_enemy_parent)) {
+    while (!place_free(playerXStart,playerYStart)) {
+        print("Collision: "+string(x)+","+string(y));
+        playerXStart = (irandom(room_width) div gridSize)*gridSize;
+        playerYStart = (irandom(room_height) div gridSize)*gridSize;
+    }
+}
 if (canMove) {
     if (health &lt;= 4) {
-        part_particles_create(smokeSystem,x+4,y+4,smokeType,1);
+        part_particles_create(smokeSystem,x+4+(irandom(2)*choose(-1,1)),y+4+(irandom(2)*choose(-1,1)),smokeType,1);
     }
     /*************** BODY **************/
     if (place_snapped(gridSize,gridSize)) {
@@ -210,6 +218,52 @@ else {
     if (!place_snapped(gridSize,gridSize)) {
         place_snapped(gridSize,gridSize);
     }
+    else {
+        speed = 0;
+    }
+}
+</string>
+          </argument>
+        </arguments>
+      </action>
+    </event>
+    <event eventtype="4" ename="obj_pickup">
+      <action>
+        <libid>1</libid>
+        <id>603</id>
+        <kind>7</kind>
+        <userelative>0</userelative>
+        <isquestion>0</isquestion>
+        <useapplyto>-1</useapplyto>
+        <exetype>2</exetype>
+        <functionname></functionname>
+        <codestring></codestring>
+        <whoName>self</whoName>
+        <relative>0</relative>
+        <isnot>0</isnot>
+        <arguments>
+          <argument>
+            <kind>1</kind>
+            <string>with(other) {
+    instance_destroy();
+}
+var ind = instance_create(x+(sprite_width/2),y+(sprite_height/2),obj_dmg_inc);
+ind.damage = 250;
+ind.size = 1;
+ind.wait = -30;
+
+score += 250;
+switch(other.image_index) {
+    case 0: 
+        ammo += min(5,maxAmmo-ammo);
+        break;
+    case 1:
+        maxReloadTime *= 0.8;
+        break;
+    case 2:
+        lives ++;
+        health = 10;
+        break;
 }
 </string>
           </argument>
@@ -233,7 +287,7 @@ else {
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>damage = 2;
+            <string>damage = 2+other.baseDamage;
 hitIndAngle = point_direction(x+4,y+4,other.x,other.y);
 hitIndAlpha = 1;
 if (canMove) {
@@ -242,13 +296,14 @@ if (canMove) {
     }
     else {
         canMove = false;
+        audio_play_sound(explodeDeadSound,1,false);
         alarm[0] = 180;
         repeat (5) part_particles_create(explosionSystem,x+irandom(sprite_width),y+irandom(sprite_height),explosionType,1);
     }
-    with(other) {
-        part_particles_create(explosionSystem,x,y,explosionType,1);
-        instance_destroy();
-    }
+}
+with(other) {
+    part_particles_create(explosionSystem,x,y,explosionType,1);
+    instance_destroy();
 }
 </string>
           </argument>

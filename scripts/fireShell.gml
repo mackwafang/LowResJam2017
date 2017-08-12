@@ -9,6 +9,7 @@ if (t_a == t_d) {
     shell.direction = displayTurretAngle;
     shell.image_angle = displayTurretAngle;
     shell.speed = 5;
+    audio_play_sound(shootSound,1,false);
     shell.type = ammoType;
     if (ammoType != 0) {
         ammo--;

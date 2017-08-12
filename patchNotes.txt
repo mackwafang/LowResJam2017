@@ -16,9 +16,29 @@
 		+ Low body and turret turn rate
 		+ High health of 10
 		+ Base damage of 4
-	- Added Level 3 and 4
+	- Added Level 3, 4, 5
 	- Added level completion screen
+	- Added hit location indicator
+	- Added power-ups
+		+ Ammo pickups
+			+ Restore 5 AP Rounds
+		+ Fast loading
+			+ Decrease reload time by 20% for that level
 	- Player lives and health
 		+ 3 lives
 		+ 10 health
-	
+	- Adjustment to enemy 1
+		+ Damage increase from 2 to 3
+
+8/10/17
+	- Bug fixes
+	- Added level 6, 7
+
+8/11/17
+	- Improved enemies firing mechanic
+	- Slightly improved enemies movement AI
+	- Increase enemies random firing when not in view of player or wall
+	- Decrease enemies reload time from 2s to 1.5s
+	- Capped maximum enemies to spawn to 30
+	- Added level 8
+	- Minor buf fixes

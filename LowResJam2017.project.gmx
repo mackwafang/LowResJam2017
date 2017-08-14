@@ -33,6 +33,8 @@
     <sprite>sprites\spr_pick_up</sprite>
     <sprite>sprites\spr_level_bkg</sprite>
     <sprite>sprites\spr_level_font</sprite>
+    <sprite>sprites\spr_player_shine</sprite>
+    <sprite>sprites\spr_spawn_point</sprite>
   </sprites>
   <backgrounds name="background">
     <background>background\bkg_grass</background>
@@ -66,17 +68,20 @@
     <object>objects\obj_enemy_4</object>
     <object>objects\obj_pickup</object>
     <object>objects\obj_title_control</object>
+    <object>objects\obj_spawn_point</object>
   </objects>
   <rooms name="rooms">
     <room>rooms\rm_title</room>
+    <room>rooms\room6</room>
     <room>rooms\room0</room>
     <room>rooms\room1</room>
     <room>rooms\room2</room>
     <room>rooms\room3</room>
     <room>rooms\room4</room>
     <room>rooms\room5</room>
-    <room>rooms\room6</room>
     <room>rooms\room7</room>
+    <room>rooms\room8</room>
+    <room>rooms\room9</room>
     <room>rooms\rm_test</room>
   </rooms>
   <constants number="11">

@@ -39,6 +39,13 @@ xPrev = x;
 yPrev = y;
 xTo = x;
 yTo = y;
+
+reflectSurface = -1;
+respawnRetryLimit = 500;
+
+if (!instance_exists(obj_spawn_point)) {
+    instance_create(x,y,obj_spawn_point);
+}
 </string>
           </argument>
         </arguments>
@@ -62,16 +69,12 @@ yTo = y;
           <argument>
             <kind>1</kind>
             <string>if (lives &gt; 0) {
-    playerXStart = (irandom(room_width) div gridSize)*gridSize;
-    playerYStart = (irandom(room_height) div gridSize)*gridSize;
-    while (!place_free(playerXStart,playerYStart)) {
-        print("Respawning: "+string(x)+","+string(y));
-        playerXStart = (irandom(room_width) div gridSize)*gridSize;
-        playerYStart = (irandom(room_height) div gridSize)*gridSize;
-    }
     x = playerXStart;
     y = playerYStart;
+    reflectionTimer = 0;
     maxReloadTime = 90;
+    p_turretTurnRate = 3;
+    p_bodyTurnRate = 2;
     health = 10;
     lives--;
     canMove = true;
@@ -187,7 +190,7 @@ if (canMove) {
         place_snapped(gridSize,gridSize);
     }
     var image_ad = angle_difference(direction,displayBodyAngle);
-    displayBodyAngle += sign(image_ad)*2;
+    displayBodyAngle += round(sign(image_ad)*p_bodyTurnRate);
     if (speed &gt; 0 || abs(image_ad) &gt; 0) {
         image_index += 0.5;
     }
@@ -205,7 +208,7 @@ if (canMove) {
         turretAngle = 270;
     }
     var ad = angle_difference(turretAngle,displayTurretAngle);
-    displayTurretAngle += sign(ad)*3;
+    displayTurretAngle += sign(ad)*p_turretTurnRate;
     /*************** FIRE **************/
     if (!reload) {
         if (keyboard_check(vk_space)) {
@@ -229,6 +232,10 @@ else {
     else {
         speed = 0;
     }
+}
+/************** REFLECTION TIMER *****************/
+if (reflectionTimer &gt; 0) {
+    reflectionTimer--;
 }
 </string>
           </argument>
@@ -272,6 +279,9 @@ switch(other.image_index) {
         lives ++;
         health = 10;
         break;
+    case 3:
+        reflectionTimer = 1200;
+        break;
 }
 </string>
           </argument>
@@ -295,7 +305,17 @@ switch(other.image_index) {
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>damage = 2+other.baseDamage;
+            <string>if (reflectionTimer &gt; 0) { 
+    var reflectedShell = instance_create(x+4,y+4,obj_shell);
+    reflectedShell.direction = other.direction-180;
+    reflectedShell.speed = other.speed;
+    reflectedShell.type = 1;
+    reflectedShell.image_angle = other.image_angle
+    damage = 0;
+}
+else {
+    damage = 1+other.baseDamage;
+}
 hitIndAngle = point_direction(x+4,y+4,other.x,other.y);
 hitIndAlpha = 1;
 if (canMove) {
@@ -335,7 +355,7 @@ with(other) {
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>var displayColor = green
+            <string>var displayColor = green;
 if (!canMove) {
     displayColor = make_colour_hsv(colour_get_hue(displayColor),colour_get_saturation(displayColor),colour_get_value(displayColor)*0.5);
 }
@@ -344,6 +364,44 @@ var xx, yy;
 xx = lengthdir_x(fire,displayTurretAngle);
 yy = lengthdir_y(fire,displayTurretAngle);
 draw_sprite_ext(spr_tank_turret,0,x+(sprite_width/2)+xx,y+(sprite_height/2)+yy,1,1,displayTurretAngle,displayColor,1);
+draw_sprite(spr_player_shine,reflectionTimer/2,x,y);
+/*if (reflectionTimer &gt; 0) {
+    if (surface_exists(reflectSurface)) {
+        draw_surface(reflectSurface,x-1,y-1);
+        
+        surface_set_target(reflectSurface);
+        var displayColor = green
+        if (!canMove) {
+            displayColor = make_colour_hsv(colour_get_hue(displayColor),colour_get_saturation(displayColor),colour_get_value(displayColor)*0.5);
+        }
+        draw_sprite_ext(spr_tank_body,image_index,1+(sprite_width/2),1+(sprite_height/2),1,1,displayBodyAngle,displayColor,1);
+        var xx, yy;
+        xx = lengthdir_x(fire,displayTurretAngle);
+        yy = lengthdir_y(fire,displayTurretAngle);
+        draw_sprite_ext(spr_tank_turret,0,1+(sprite_width/2)+xx,1+(sprite_height/2)+yy,1,1,displayTurretAngle,displayColor,1);
+        surface_reset_target();
+        
+        draw_set_colour_write_enable(1,1,1,0);
+        surface_set_target(reflectSurface);
+        draw_sprite(spr_player_shine,reflectionTimer/2,1,1);
+        surface_reset_target();
+        draw_set_colour_write_enable(1,1,1,1);
+    }
+    else {
+        reflectSurface = surface_create(10,10);
+    }
+}
+else {
+    var displayColor = green;
+    if (!canMove) {
+        displayColor = make_colour_hsv(colour_get_hue(displayColor),colour_get_saturation(displayColor),colour_get_value(displayColor)*0.5);
+    }
+    draw_sprite_ext(spr_tank_body,image_index,x+(sprite_width/2),y+(sprite_height/2),1,1,displayBodyAngle,displayColor,1);
+    var xx, yy;
+    xx = lengthdir_x(fire,displayTurretAngle);
+    yy = lengthdir_y(fire,displayTurretAngle);
+    draw_sprite_ext(spr_tank_turret,0,x+(sprite_width/2)+xx,y+(sprite_height/2)+yy,1,1,displayTurretAngle,displayColor,1);
+}
 </string>
           </argument>
         </arguments>

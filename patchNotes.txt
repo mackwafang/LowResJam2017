@@ -27,7 +27,7 @@
 	- Player lives and health
 		+ 3 lives
 		+ 10 health
-	- Adjustment to enemy 1
+	- Adjustment to enemy_1
 		+ Damage increase from 2 to 3
 
 8/10/17
@@ -52,3 +52,26 @@
 	- Added level 8
 	- Added new level indicator
 	- Minor buf fixes
+
+8/12/17
+	- Added turn rate increase pick-up
+	  	+ Turret and body turn rate increase by 1 degree per pick-up
+	- Remove turn rate increase pick-ups
+	- Added reflector pick-ups
+	  	+ 20 seconds duration
+		+ Reflect any shells back to where it came from
+		+ Enemies hit reflected shell deals AP shells damage (5 Hit Points)
+		+ Player takes 1 points of damage
+
+8/13/17
+	- Decrease reflector player damage intake from 1 to 0
+	- Decrease all enemies base damage from 2 to 1
+	- Increase initial lives from 3 to 5
+	- Added level 9 and 10
+	- Changed rendering type from smooth to nearest neighbor
+	- Increase pick-up chance to drop from 1/4 to 1/3
+	- [8/13/17 6:35 PM] Playable for jam
+	- Room loops after 10 levels
+	- Changed player respawn system from random to fixed location
+	- Executable created. Ver 1.0
+
